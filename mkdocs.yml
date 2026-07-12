@@ -1,0 +1,72 @@
+site_name: Rift Docs
+site_description: The ultimate Discord Architect, Music, and Economy bot.
+site_author: fenruko
+site_url: https://arachanid.readthedocs.io/
+
+theme:
+  name: material
+  palette:
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: black
+      accent: purple
+      toggle:
+        icon: material/weather-night
+        name: Switch to Light Mode
+    - scheme: default
+      primary: black
+      accent: purple
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to Dark Mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.instant
+    - navigation.tracking
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - content.tooltips
+
+extra_css:
+  - assets/custom.css
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - The Architect Wizard: getting-started/architect.md
+  - Modules:
+    - Server Architect: modules/architect.md
+    - Hi-Fi Music: modules/music.md
+    - Global Economy: modules/economy.md
+    - Moderation: modules/moderation.md
+    - Social & Leveling: modules/social.md
+  - Reference:
+    - Command List: reference/commands.md
+    - Glossary: reference/glossary.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
