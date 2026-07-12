@@ -1,6 +1,6 @@
 # Social & Leveling Module
 
-Build engagement with Rift's social features. Rewarding activity creates a stickier community.
+Build engagement with Arachnid's social features. Rewarding activity creates a stickier community.
 
 ## Leveling System
 

@@ -1,10 +1,10 @@
 # The Architect Wizard
 
-The **Architect Wizard** is Rift's signature feature. It allows you to visually design and build your server's infrastructure.
+The **Architect Wizard** is Arachnid's signature feature. It allows you to visually design and build your server's infrastructure.
 
 ## Overview
 
-The Wizard is an interactive "Blueprint" editor. You define what you want your server to look like, and Rift builds it for you.
+The Wizard is an interactive "Blueprint" editor. You define what you want your server to look like, and Arachnid builds it for you.
 
 <div class="mermaid">
 graph TD

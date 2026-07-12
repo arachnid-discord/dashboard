@@ -1,6 +1,6 @@
 # Command Reference
 
-A list of Rift's primary command categories. Use `/help` in Discord for the most up-to-date syntax.
+A list of Arachnid's primary command categories. Use `/help` in Discord for the most up-to-date syntax.
 
 ## Server Management
 *   `/wizard` - Open the Server Architect interface to build channels and roles.

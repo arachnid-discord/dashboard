@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   RIFT DASHBOARD — SETTINGS & PLAYLISTS
+   ARACHNID DASHBOARD — SETTINGS & PLAYLISTS
    Prefs persist server-side via /api/prefs
    keyed to Discord user ID — syncs across devices
 ═══════════════════════════════════════════ */
@@ -11,7 +11,7 @@ let _dynGradientId = null;
 let _bgStyle = 'stars';
 
 const DEFAULTS = {
-    accent:         '#7289da',
+    accent:         '#8b5cf6',
     bg:             'stars',
     sidebarOpacity: 70,
     glassBlur:      10,
@@ -41,14 +41,14 @@ async function loadPrefs() {
             const data = await res.json();
             if (data && !data.error && Object.keys(data).length) {
                 _prefs = { ...DEFAULTS, ...data };
-                localStorage.setItem('rift_prefs', JSON.stringify(_prefs));
+                localStorage.setItem('arachnid_prefs', JSON.stringify(_prefs));
                 _prefsLoaded = true;
                 return;
             }
         } catch(e) {}
     }
     try {
-        const stored = localStorage.getItem('rift_prefs');
+        const stored = localStorage.getItem('arachnid_prefs');
         _prefs = stored ? { ...DEFAULTS, ...JSON.parse(stored) } : { ...DEFAULTS };
     } catch(e) {
         _prefs = { ...DEFAULTS };
@@ -63,7 +63,7 @@ function scheduleSave() {
 }
 
 async function persistPrefs() {
-    localStorage.setItem('rift_prefs', JSON.stringify(_prefs));
+    localStorage.setItem('arachnid_prefs', JSON.stringify(_prefs));
     if (API_BASE && userProfile?.id) {
         try {
             await fetch(`${API_BASE}/prefs/${userProfile.id}`, {
@@ -78,7 +78,7 @@ async function persistPrefs() {
 // Call this on every page load (after login) to apply saved prefs immediately
 window.applyStoredPrefs = function() {
     try {
-        const stored = localStorage.getItem('rift_prefs');
+        const stored = localStorage.getItem('arachnid_prefs');
         if (stored) {
             _prefs = { ...DEFAULTS, ...JSON.parse(stored) };
             applyAllPrefs();
@@ -105,7 +105,7 @@ function renderSettingsUI() {
         s.classList.toggle('active', s.dataset.color === p.accent);
     });
     const customInput = document.getElementById('customAccentInput');
-    if (customInput) customInput.value = p.accent || '#7289da';
+    if (customInput) customInput.value = p.accent || '#8b5cf6';
 
     // BG options
     document.querySelectorAll('.bg-opt[data-bg]').forEach(b => {
@@ -196,7 +196,7 @@ window.handleBgUpload = function(input) {
             _prefs.bgImage = dataUrl;
             _prefs.bg = 'custom-img';
             scheduleSave();
-            localStorage.setItem('rift_bg_image', dataUrl);
+            localStorage.setItem('arachnid_bg_image', dataUrl);
             applyBg('custom-img');
             document.querySelectorAll('.bg-opt').forEach(b => b.classList.remove('active'));
             const customBtn = document.querySelector('.bg-opt[data-bg="custom-img"]');
@@ -226,7 +226,7 @@ function applyBg(style) {
         if (canvas) canvas.style.opacity = '0.4';
 
     } else if (style === 'gradient') {
-        const c = _prefs.accent || '#7289da';
+        const c = _prefs.accent || '#8b5cf6';
         body.style.backgroundImage = `
             radial-gradient(ellipse at 0% 0%, ${hexToRgba(c, 0.18)} 0%, transparent 55%),
             radial-gradient(ellipse at 100% 100%, ${hexToRgba(c, 0.12)} 0%, transparent 55%),
@@ -250,7 +250,7 @@ function applyBg(style) {
         body.style.backgroundImage = 'none';
 
     } else if (style === 'custom-img') {
-        const img = _prefs.bgImage || localStorage.getItem('rift_bg_image');
+        const img = _prefs.bgImage || localStorage.getItem('arachnid_bg_image');
         if (img) {
             body.style.backgroundImage = `url(${img})`;
             body.style.backgroundSize = 'cover';
@@ -347,8 +347,8 @@ function applyFont(font) {
     document.documentElement.style.setProperty('--font-family', font);
     document.body.style.fontFamily = `${font}, sans-serif`;
     // Override font BUT explicitly exclude Font Awesome icon elements
-    const style = document.getElementById('rift-font-override') || document.createElement('style');
-    style.id = 'rift-font-override';
+    const style = document.getElementById('arachnid-font-override') || document.createElement('style');
+    style.id = 'arachnid-font-override';
     style.textContent = `
         *:not(i), button:not(i), input, select, textarea {
             font-family: ${font}, sans-serif !important;
@@ -379,8 +379,8 @@ function applyFontSize(val) {
 window.resetAllSettings = function() {
     if (!confirm('Reset all settings to defaults?')) return;
     _prefs = { ...DEFAULTS };
-    localStorage.removeItem('rift_prefs');
-    localStorage.removeItem('rift_bg_image');
+    localStorage.removeItem('arachnid_prefs');
+    localStorage.removeItem('arachnid_bg_image');
     persistPrefs();
     applyAllPrefs();
     renderSettingsUI();

@@ -1,6 +1,6 @@
 # Glossary
 
-Definitions of terms used within Rift's ecosystem.
+Definitions of terms used within Arachnid's ecosystem.
 
 ## General Terms
 
@@ -13,7 +13,7 @@ A rich-media message box used by Discord bots to display information cleanly, of
 
 ### Prefix
 The character(s) used to trigger a bot command.
-*   **Slash Command (`/`):** The modern, standard way to use Rift.
+*   **Slash Command (`/`):** The modern, standard way to use Arachnid.
 *   **Text Prefix (`!`):** The legacy way (e.g., `!play`). Slash commands are recommended.
 
 ## Economy Terms
@@ -30,7 +30,7 @@ Used in gambling and loot drops. Determines the outcome of chance-based events.
 ## Music Terms
 
 ### Bridge
-The technology Rift uses to "play" Spotify links. Since Spotify does not allow direct bot streaming, the Bridge finds the equivalent audio on YouTube/SoundCloud.
+The technology Arachnid uses to "play" Spotify links. Since Spotify does not allow direct bot streaming, the Bridge finds the equivalent audio on YouTube/SoundCloud.
 
 ### Scrobble
 The act of recording a track you listened to and sending that data to Last.fm for statistics.

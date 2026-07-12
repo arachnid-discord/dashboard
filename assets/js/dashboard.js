@@ -201,8 +201,8 @@ function showLoginWall() {
         wall.id = 'loginWall';
         wall.innerHTML = `
             <div class="login-wall-inner">
-                <img src="https://i.postimg.cc/D0DrrFt3/110c46fc7f5cf0c4e29f872107d7bf97.png" class="login-wall-logo">
-                <h1 class="login-wall-title">RIFT</h1>
+                <i class="fa-solid fa-spider brand-logo-icon" style="color: var(--primary); font-size: 48px; margin-bottom: 12px;"></i>
+                <h1 class="login-wall-title">ARACHNID</h1>
                 <p class="login-wall-sub">Sign in with Discord to access the dashboard</p>
                 <button class="login-wall-btn" onclick="login()">
                     <i class="fa-brands fa-discord"></i> Login with Discord
@@ -279,7 +279,7 @@ function buildProfilePopup(u, avatar) {
 
     const accentColor = u.accent_color
         ? `#${u.accent_color.toString(16).padStart(6, '0')}`
-        : '#7289da';
+        : '#8b5cf6';
 
     const badges = buildBadges(u);
     const nitroSince = u.premium_type > 0 ? getNitroLabel(u.premium_type) : null;
