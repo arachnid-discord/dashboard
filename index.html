@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rift Dashboard</title>
+    <title>Arachnid Dashboard</title>
     <link rel="icon" type="image/png" href="https://i.postimg.cc/qR4jqJdK/cropped_circle_image.png">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -17,8 +17,8 @@
             <!-- Mobile header inside sidebar -->
             <div class="sidebar-header">
                 <div class="logo">
-                    <img src="https://i.postimg.cc/D0DrrFt3/110c46fc7f5cf0c4e29f872107d7bf97.png" alt="Rift Logo" class="sidebar-logo-img">
-                    <span>RIFT</span>
+                    <i class="fa-solid fa-spider brand-logo-icon" style="color: var(--primary); font-size: 24px;"></i>
+                    <span>ARACHNID</span>
                 </div>
                 <button class="sidebar-close" id="sidebarClose" onclick="closeSidebar()">
                     <i class="fa-solid fa-xmark"></i>
@@ -41,9 +41,9 @@
             </ul>
 
             <!-- Ko-fi tip button -->
-            <a href="https://ko-fi.com/fenruko" target="_blank" class="kofi-btn" title="Support Rift on Ko-fi">
+            <a href="https://ko-fi.com/fenruko" target="_blank" class="kofi-btn" title="Support Arachnid on Ko-fi">
                 <img src="https://storage.ko-fi.com/cdn/cup-border.png" class="kofi-icon" alt="Ko-fi">
-                <span>Support Rift</span>
+                <span>Support Arachnid</span>
             </a>
 
             <div class="sidebar-footer">
@@ -445,14 +445,14 @@
                                     <span class="settings-row-desc">Primary color used across the dashboard</span>
                                 </div>
                                 <div class="settings-color-swatches" id="accentSwatches">
-                                    <button class="swatch active" data-color="#7289da" style="background:#7289da" onclick="setAccent('#7289da',this)"></button>
-                                    <button class="swatch" data-color="#5865f2" style="background:#5865f2" onclick="setAccent('#5865f2',this)"></button>
-                                    <button class="swatch" data-color="#eb459e" style="background:#eb459e" onclick="setAccent('#eb459e',this)"></button>
-                                    <button class="swatch" data-color="#57f287" style="background:#57f287" onclick="setAccent('#57f287',this)"></button>
-                                    <button class="swatch" data-color="#fee75c" style="background:#fee75c" onclick="setAccent('#fee75c',this)"></button>
-                                    <button class="swatch" data-color="#ed4245" style="background:#ed4245" onclick="setAccent('#ed4245',this)"></button>
-                                    <button class="swatch" data-color="#00d2ff" style="background:#00d2ff" onclick="setAccent('#00d2ff',this)"></button>
-                                    <button class="swatch" data-color="#ff9500" style="background:#ff9500" onclick="setAccent('#ff9500',this)"></button>
+                                    <button class="swatch active" data-color="#8b5cf6" style="background:#8b5cf6" onclick="setAccent('#8b5cf6',this)"></button>
+                                    <button class="swatch" data-color="#6366f1" style="background:#6366f1" onclick="setAccent('#6366f1',this)"></button>
+                                    <button class="swatch" data-color="#3b82f6" style="background:#3b82f6" onclick="setAccent('#3b82f6',this)"></button>
+                                    <button class="swatch" data-color="#4f46e5" style="background:#4f46e5" onclick="setAccent('#4f46e5',this)"></button>
+                                    <button class="swatch" data-color="#a855f7" style="background:#a855f7" onclick="setAccent('#a855f7',this)"></button>
+                                    <button class="swatch" data-color="#d946ef" style="background:#d946ef" onclick="setAccent('#d946ef',this)"></button>
+                                    <button class="swatch" data-color="#06b6d4" style="background:#06b6d4" onclick="setAccent('#06b6d4',this)"></button>
+                                    <button class="swatch" data-color="#1d4ed8" style="background:#1d4ed8" onclick="setAccent('#1d4ed8',this)"></button>
                                     <label class="swatch swatch-custom" title="Custom color">
                                         <i class="fa-solid fa-eyedropper"></i>
                                         <input type="color" id="customAccentInput" onchange="setAccent(this.value, null, true)">

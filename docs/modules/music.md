@@ -1,6 +1,6 @@
 # Hi-Fi Music Module
 
-Rift's music module is designed for audiophiles. It supports high-fidelity streaming, seamless Spotify bridging, and advanced DSP (Digital Signal Processing) filters.
+Arachnid's music module is designed for audiophiles. It supports high-fidelity streaming, seamless Spotify bridging, and advanced DSP (Digital Signal Processing) filters.
 
 ## Supported Sources
 
@@ -53,7 +53,7 @@ Apply real-time effects to the audio stream.
 ## Features Explained
 
 ### The Spotify Bridge
-When you paste a Spotify link, Rift does **not** stream from Spotify (this is technically impossible for bots).
+When you paste a Spotify link, Arachnid does **not** stream from Spotify (this is technically impossible for bots).
 
 1.  Bot reads track metadata: *Artist - Title*.
 2.  Bot searches YouTube Music/SoundCloud for the best audio match.
@@ -68,7 +68,7 @@ Track your listening habits.
 4.  **Flex:** Use `/fm chart` to generate a 3x3 grid of your top albums.
 
 ### AI Recommendations
-If the queue is empty, enable Autoplay to have Rift guess what you want to hear next.
+If the queue is empty, enable Autoplay to have Arachnid guess what you want to hear next.
 
 *   **Command:** `/autoplay toggle`
 *   **Logic:** Uses your listening history + current song genre to queue similar tracks.
