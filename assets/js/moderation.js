@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   RIFT DASHBOARD — MODERATION MODULE
+   ARACHNID DASHBOARD — MODERATION MODULE
 ═══════════════════════════════════════════ */
 
 /* ── State ───────────────────────────────── */
@@ -106,8 +106,8 @@ function renderModActivityChart(buckets) {
                 data: values,
                 backgroundColor: ordered.map((d, i) =>
                     i === ordered.length - 1
-                        ? 'rgba(114,137,218,0.9)'
-                        : 'rgba(114,137,218,0.35)'),
+                        ? 'rgba(139,92,246,0.9)'
+                        : 'rgba(139,92,246,0.35)'),
                 borderRadius: 6,
                 borderSkipped: false,
             }]
@@ -978,8 +978,8 @@ function renderAnalyticsCharts(data) {
     if (msgCtx) {
         if (anaMsgChart) anaMsgChart.destroy();
         const gradient = msgCtx.createLinearGradient(0, 0, 0, 160);
-        gradient.addColorStop(0,   'rgba(114,137,218,0.6)');
-        gradient.addColorStop(1,   'rgba(114,137,218,0.02)');
+        gradient.addColorStop(0,   'rgba(139,92,246,0.6)');
+        gradient.addColorStop(1,   'rgba(139,92,246,0.02)');
         anaMsgChart = new Chart(msgCtx, {
             type: 'line',
             data: {
@@ -987,11 +987,11 @@ function renderAnalyticsCharts(data) {
                 datasets: [{
                     label: 'Messages',
                     data: msgs,
-                    borderColor: '#7289da',
+                    borderColor: '#8b5cf6',
                     backgroundColor: gradient,
                     borderWidth: 2,
                     pointRadius: 3,
-                    pointBackgroundColor: '#7289da',
+                    pointBackgroundColor: '#8b5cf6',
                     fill: true,
                     tension: 0.4,
                 }]

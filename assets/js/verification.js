@@ -30,7 +30,7 @@ async function fetchVerificationFlags() {
     list.innerHTML = '<tr><td colspan="4" class="v-empty"><div class="loading-shimmer" style="height:20px"></div></td></tr>';
 
     try {
-        const response = await fetch(`https://api.rift.baby/api/verification/flags/${guildId}`);
+        const response = await fetch(`${API_BASE}/verification/flags/${guildId}`);
         const flags = await response.json();
 
         if (!flags || flags.length === 0) {
@@ -68,7 +68,7 @@ async function fetchVerificationHistory() {
     list.innerHTML = '<div class="loading-shimmer" style="height:60px; border-radius:12px"></div>';
 
     try {
-        const response = await fetch(`https://api.rift.baby/api/verification/fingerprints/${guildId}`);
+        const response = await fetch(`${API_BASE}/verification/fingerprints/${guildId}`);
         const fps = await response.json();
 
         if (!fps || fps.length === 0) {
