@@ -373,8 +373,10 @@ window.lookupGuildOrUserStats = async function(event) {
         } else {
             // Member lookup
             const routes = [
-                { name: 'user_profile', path: `/api/user/${targetId}` },
-                { name: 'user_stats', path: `/api/stats/${targetId}` }
+                { name: 'mod_user', path: `/api/mod/user/${targetId}` },
+                { name: 'lastfm_profile', path: `/api/lastfm/profile/${targetId}` },
+                { name: 'lastfm_nowplaying', path: `/api/lastfm/nowplaying/${targetId}` },
+                { name: 'stocks_portfolio', path: `/api/stocks/portfolio/${targetId}` }
             ];
             for (const r of routes) {
                 try {
