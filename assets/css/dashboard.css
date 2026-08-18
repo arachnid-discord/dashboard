@@ -6359,3 +6359,346 @@ input[type="range"]::-webkit-slider-thumb:hover {
     padding: 2px 8px;
     border-radius: 4px;
 }
+
+/* ═══════════════════════════════════════════
+   ADMIN TELEMETRY PANEL STYLES
+═══════════════════════════════════════════ */
+.hidden { display: none !important; }
+
+.admin-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-lock-card {
+    max-width: 480px;
+    margin: 60px auto;
+    padding: 32px;
+    text-align: center;
+}
+
+.admin-lock-header {
+    margin-bottom: 24px;
+}
+
+.admin-lock-icon {
+    font-size: 42px;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
+
+.admin-lock-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.admin-lock-header p {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.admin-lock-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.admin-input-group {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    gap: 12px;
+}
+
+.admin-input-group i {
+    color: var(--text-muted);
+}
+
+.admin-input-group input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 15px;
+    width: 100%;
+    outline: none;
+}
+
+.admin-auth-error {
+    color: var(--danger);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.admin-unlock-btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: 0.2s;
+}
+
+.admin-unlock-btn:hover {
+    background: #7c3aed;
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.admin-top-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.admin-btn-group {
+    display: flex;
+    gap: 10px;
+}
+
+.admin-action-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.2s;
+}
+
+.admin-action-btn.sm {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.admin-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-action-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.admin-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.admin-card-wide {
+    grid-column: span 2;
+}
+
+@media (max-width: 900px) {
+    .admin-card-wide {
+        grid-column: span 1;
+    }
+}
+
+.admin-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.admin-metric-val {
+    font-size: 24px;
+    font-weight: 700;
+    color: #22c55e;
+    margin-bottom: 4px;
+}
+
+.admin-metric-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: monospace;
+    word-break: break-all;
+    margin-bottom: 12px;
+}
+
+.admin-metric-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    border-top: 1px solid var(--glass-border);
+    padding-top: 10px;
+    color: var(--text-muted);
+}
+
+.admin-resource-bar-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.admin-resource-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.admin-progress-bg {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.admin-progress-bar {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.admin-progress-bar.cyan {
+    background: #06b6d4;
+}
+
+.admin-telemetry-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.admin-telemetry-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.admin-telemetry-item strong {
+    color: var(--text-main);
+}
+
+.admin-code-block {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #38bdf8;
+    max-height: 180px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.admin-table-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.admin-table th {
+    color: var(--text-muted);
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--glass-border);
+    font-weight: 600;
+}
+
+.admin-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.admin-action-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(139, 92, 246, 0.2);
+    color: var(--primary);
+}
+
+.admin-log-stream {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 14px;
+    height: 180px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.admin-log-entry {
+    color: #e2e8f0;
+}
+
+.admin-log-entry .timestamp {
+    color: #64748b;
+    margin-right: 8px;
+}
+
+.admin-log-entry.info { color: #38bdf8; }
+.admin-log-entry.ws { color: #a855f7; }
+.admin-log-entry.warn { color: #f59e0b; }
+.admin-log-entry.error { color: #ef4444; }

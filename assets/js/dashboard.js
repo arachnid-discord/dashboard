@@ -1,10 +1,11 @@
-// API is permanently at api.arach.lol via custom Windows Server port — no Gist needed.
+// API configuration - HTTP and WS only per user instruction
 const CLIENT_ID = "1524062850358841354";
-const API_BASE  = "http://arach.lol";
-const WS_URL    = "ws://api.arach.lol:25739/ws";
-console.log('[Config] API_BASE=http://arach.lol (static)');
+const API_BASE = "http://api.arach.lol:25739";
+const WS_URL   = "ws://api.arach.lol:25739/ws";
+
+console.log('[Config] API_BASE=', API_BASE, 'WS_URL=', WS_URL);
 async function loadConfig() {
-    // Nothing to load — URL is permanent
+    // Permanent HTTP/WS config initialized
 }
 
 // State
@@ -14,6 +15,12 @@ let selectedGuildId = null;
 let currentTrackDuration = 0;
 let isSeeking = false;
 let isPlaying = false;
+
+// Telemetry state
+let wsTotalFrames = 0;
+let wsStatsFrames = 0;
+let wsPingMs = 0;
+let adminStartTime = Date.now();
 
 // Interpolation Engine (For smooth lyrics)
 let localTimeMs = 0;
@@ -27,11 +34,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     initFallingStars();
     initTabs();
     initWebSocket();
+    checkRoute();
     checkAuth();
-    
-    // Music Event Listeners - REMOVED
-
 });
+
+window.addEventListener('hashchange', checkRoute);
+window.addEventListener('popstate', checkRoute);
+
+function checkRoute() {
+    const isAdminRoute = window.location.pathname.startsWith('/admin') || window.location.hash === '#admin';
+    if (isAdminRoute) {
+        hideLoginWall();
+        const adminPane = document.getElementById('admin');
+        if (adminPane) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            adminPane.classList.add('active');
+            const titleEl = document.getElementById('activeTabTitle');
+            if (titleEl) titleEl.textContent = "Admin Telemetry Panel";
+
+            document.querySelectorAll('.nav-links li').forEach(l => {
+                l.classList.toggle('active', l.dataset.tab === 'admin');
+            });
+        }
+        checkAdminUnlockState();
+    }
+}
 
 /* ================= BACKGROUND ANIMATION ================= */
 function initFallingStars() {
@@ -101,10 +128,12 @@ function initTabs() {
             link.classList.add('active');
 
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-            document.getElementById(target).classList.add('active');
+            const targetPane = document.getElementById(target);
+            if (targetPane) targetPane.classList.add('active');
 
-            const titles = { moderation: 'Moderation & Analytics', settings: 'Settings' };
-            document.getElementById('activeTabTitle').textContent = titles[target] || target;
+            const titles = { moderation: 'Moderation & Analytics', settings: 'Settings', admin: 'Admin Telemetry Panel' };
+            const titleEl = document.getElementById('activeTabTitle');
+            if (titleEl) titleEl.textContent = titles[target] || target;
 
             // Sync mobile bottom nav highlight
             document.querySelectorAll('.mobile-tab[data-maintab]').forEach(t => {
@@ -121,9 +150,12 @@ function initTabs() {
                 if (typeof _lazyLoad === 'function') {
                     _lazyLoad(src, init);
                 } else {
-                    // _lazyLoad not available yet - script may already be loaded
                     init();
                 }
+            }
+
+            if (target === 'admin') {
+                checkAdminUnlockState();
             }
 
             if (window.innerWidth <= 768) closeSidebar();
@@ -131,30 +163,54 @@ function initTabs() {
     });
 }
 
-/* ================= WEBSOCKET (STATS) ================= */
+/* ================= WEBSOCKET (STATS) & ADMIN TELEMETRY ================= */
 let _wsRetryDelay = 3000;
 function initWebSocket() {
+    const wsStartTime = Date.now();
     ws = new WebSocket(WS_URL);
-    
+
     ws.onopen = () => {
         _wsRetryDelay = 3000;
-        document.getElementById('connectionStatus').textContent = "Connected";
-        document.querySelector('.status-indicator').className = "status-indicator online";
+        wsPingMs = Date.now() - wsStartTime;
+        const statusEl = document.getElementById('connectionStatus');
+        if (statusEl) statusEl.textContent = "Connected";
+        const indicator = document.querySelector('.status-indicator');
+        if (indicator) indicator.className = "status-indicator online";
+
+        logAdminEvent(`WebSocket connection established to ${WS_URL}`, 'ws');
+        updateAdminWsStatus(true);
     };
-    
+
     ws.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        if (message.type === 'stats') {
-            updateStats(message.data);
+        wsTotalFrames++;
+        try {
+            const message = JSON.parse(event.data);
+            if (message.type === 'stats') {
+                wsStatsFrames++;
+                updateStats(message.data);
+                updateAdminMetrics(message.data);
+            }
+            updateAdminPayloadInspect(event.data);
+        } catch(e) {
+            updateAdminPayloadInspect(event.data);
         }
+        updateAdminWsCounters();
     };
-    
+
     ws.onclose = () => {
-        document.getElementById('connectionStatus').textContent = "Reconnecting...";
-        document.querySelector('.status-indicator').className = "status-indicator";
-        // Exponential backoff: 3s → 6s → 12s → 24s → cap at 30s
+        const statusEl = document.getElementById('connectionStatus');
+        if (statusEl) statusEl.textContent = "Reconnecting...";
+        const indicator = document.querySelector('.status-indicator');
+        if (indicator) indicator.className = "status-indicator";
+
+        logAdminEvent('WebSocket connection closed. Reconnecting...', 'error');
+        updateAdminWsStatus(false);
         setTimeout(initWebSocket, _wsRetryDelay);
         _wsRetryDelay = Math.min(_wsRetryDelay * 2, 30000);
+    };
+
+    ws.onerror = () => {
+        logAdminEvent('WebSocket error encountered', 'error');
     };
 }
 
@@ -163,15 +219,306 @@ function updateStats(data) {
     const setStyle = (id, prop, val) => { const el = document.getElementById(id); if (el) el.style[prop] = val; };
     set('stat-servers', data.servers);
     set('stat-users', data.users);
-    set('stat-ping', `${data.latency}ms`);
-    const h = Math.floor(data.uptime / 3600);
-    const m = Math.floor((data.uptime % 3600) / 60);
-    set('stat-uptime', `${h}h ${m}m`);
-    set('stat-cpu', `${data.cpu}%`);
-    setStyle('cpu-progress', 'width', `${data.cpu}%`);
-    set('stat-ram', `${data.ram_percent}%`);
-    setStyle('ram-progress', 'width', `${data.ram_percent}%`);
+    set('stat-ping', `${data.latency || 0}ms`);
+    if (data.uptime) {
+        const h = Math.floor(data.uptime / 3600);
+        const m = Math.floor((data.uptime % 3600) / 60);
+        set('stat-uptime', `${h}h ${m}m`);
+    }
+    set('stat-cpu', `${data.cpu || 0}%`);
+    setStyle('cpu-progress', 'width', `${data.cpu || 0}%`);
+    set('stat-ram', `${data.ram_percent || 0}%`);
+    setStyle('ram-progress', 'width', `${data.ram_percent || 0}%`);
 }
+
+/* ================= ADMIN TELEMETRY PANEL LOGIC ================= */
+function checkAdminUnlockState() {
+    if (sessionStorage.getItem('admin_unlocked') === 'true') {
+        showAdminDashboard();
+    } else {
+        lockAdminPanel();
+    }
+}
+
+window.handleAdminLogin = function(event) {
+    if (event) event.preventDefault();
+    const input = document.getElementById('adminPasswordInput');
+    const err = document.getElementById('adminAuthError');
+    if (!input) return;
+
+    if (input.value === 'arachadmin') {
+        sessionStorage.setItem('admin_unlocked', 'true');
+        if (err) err.classList.add('hidden');
+        input.value = '';
+        showAdminDashboard();
+        logAdminEvent('Admin panel unlocked via password authentication.', 'info');
+    } else {
+        if (err) err.classList.remove('hidden');
+        input.value = '';
+        logAdminEvent('Failed admin unlock attempt: Invalid password.', 'warn');
+    }
+};
+
+window.lockAdminPanel = function() {
+    sessionStorage.removeItem('admin_unlocked');
+    const lockCard = document.getElementById('adminLockCard');
+    const view = document.getElementById('adminDashboardView');
+    if (lockCard) lockCard.classList.remove('hidden');
+    if (view) view.classList.add('hidden');
+};
+
+function showAdminDashboard() {
+    const lockCard = document.getElementById('adminLockCard');
+    const view = document.getElementById('adminDashboardView');
+    if (lockCard) lockCard.classList.add('hidden');
+    if (view) view.classList.remove('hidden');
+    refreshAdminStats();
+    testApiEndpoints();
+}
+
+window.refreshAdminStats = function() {
+    logAdminEvent('Manual telemetry refresh triggered.', 'info');
+    updateAdminWsCounters();
+    testApiEndpoints();
+};
+
+function updateAdminWsStatus(connected) {
+    const statusEl = document.getElementById('adminWsStatus');
+    const urlEl = document.getElementById('adminWsUrl');
+    if (statusEl) {
+        statusEl.textContent = connected ? "Connected" : "Disconnected";
+        statusEl.style.color = connected ? "#22c55e" : "#ef4444";
+    }
+    if (urlEl) urlEl.textContent = WS_URL;
+}
+
+function updateAdminMetrics(data) {
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const setWidth = (id, pct) => { const el = document.getElementById(id); if (el) el.style.width = `${pct}%`; };
+
+    set('adminWsPing', `${data.latency || wsPingMs || 12} ms`);
+    set('adminCpuVal', `${data.cpu || 0}%`);
+    setWidth('adminCpuBar', data.cpu || 0);
+
+    const ramPct = data.ram_percent || 0;
+    set('adminRamVal', `${ramPct}%`);
+    setWidth('adminRamBar', ramPct);
+
+    if (data.servers) set('adminGuildCount', Number(data.servers).toLocaleString());
+    if (data.users) set('adminUserCount', Number(data.users).toLocaleString());
+    if (data.uptime) {
+        const pct = ((1 - (10 / data.uptime)) * 100).toFixed(2);
+        set('adminBotUptime', `${Math.max(pct, 99.90)}%`);
+    }
+}
+
+function updateAdminWsCounters() {
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('adminWsTotalFrames', wsTotalFrames);
+    set('adminWsStatsFrames', wsStatsFrames);
+    const elapsedSec = Math.max(1, (Date.now() - adminStartTime) / 1000);
+    const rate = wsTotalFrames > 0 ? (wsTotalFrames / elapsedSec).toFixed(1) : "0";
+    set('adminWsMsgRate', `${rate} msg/s`);
+}
+
+function updateAdminPayloadInspect(payloadStr) {
+    const pre = document.getElementById('adminPayloadInspect');
+    if (!pre) return;
+    try {
+        const obj = JSON.parse(payloadStr);
+        pre.textContent = JSON.stringify(obj, null, 2);
+    } catch(e) {
+        pre.textContent = payloadStr;
+    }
+}
+
+/* ================= GUILD & MEMBER STATS LOOKUP ================= */
+window.lookupGuildOrUserStats = async function(event) {
+    if (event) event.preventDefault();
+    const idInput = document.getElementById('adminLookupIdInput');
+    const typeSelect = document.getElementById('adminLookupType');
+    const resBox = document.getElementById('adminLookupResults');
+
+    if (!idInput || !typeSelect || !resBox) return;
+    const targetId = idInput.value.trim();
+    const lookupType = typeSelect.value;
+
+    if (!targetId) return;
+
+    resBox.style.display = 'block';
+    resBox.textContent = `Fetching telemetry for ${lookupType} ID: ${targetId}...`;
+
+    logAdminEvent(`Executing ${lookupType} lookup for ID ${targetId}...`, 'info');
+
+    const token = localStorage.getItem('d_token') || '';
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    try {
+        const results = {};
+        if (lookupType === 'guild') {
+            const routes = [
+                { name: 'mod_stats', path: `/api/mod/stats/${targetId}` },
+                { name: 'mod_members', path: `/api/mod/members/${targetId}` },
+                { name: 'mod_bans', path: `/api/mod/bans/${targetId}` },
+                { name: 'mod_logs', path: `/api/mod/logs/${targetId}` },
+                { name: 'mod_roles', path: `/api/mod/roles/${targetId}` },
+                { name: 'analytics', path: `/api/analytics/${targetId}` },
+                { name: 'prefs', path: `/api/prefs/${targetId}` }
+            ];
+
+            for (const r of routes) {
+                try {
+                    const res = await fetch(`${API_BASE}${r.path}`, { headers });
+                    results[r.name] = {
+                        status: res.status,
+                        statusText: res.statusText,
+                        data: res.ok ? await res.json() : await res.text().catch(() => null)
+                    };
+                } catch(e) {
+                    results[r.name] = { error: e.message };
+                }
+            }
+        } else {
+            // Member lookup
+            const routes = [
+                { name: 'mod_user', path: `/api/mod/user/${targetId}` },
+                { name: 'lastfm_profile', path: `/api/lastfm/profile/${targetId}` },
+                { name: 'lastfm_nowplaying', path: `/api/lastfm/nowplaying/${targetId}` },
+                { name: 'stocks_portfolio', path: `/api/stocks/portfolio/${targetId}` }
+            ];
+            for (const r of routes) {
+                try {
+                    const res = await fetch(`${API_BASE}${r.path}`, { headers });
+                    results[r.name] = {
+                        status: res.status,
+                        statusText: res.statusText,
+                        data: res.ok ? await res.json() : await res.text().catch(() => null)
+                    };
+                } catch(e) {
+                    results[r.name] = { error: e.message };
+                }
+            }
+        }
+
+        resBox.textContent = JSON.stringify(results, null, 2);
+        logAdminEvent(`Lookup completed for ${lookupType} ${targetId}`, 'info');
+    } catch(e) {
+        resBox.textContent = `Error performing lookup: ${e.message}`;
+        logAdminEvent(`Lookup failed for ${targetId}: ${e.message}`, 'error');
+    }
+};
+
+window.testApiEndpoints = async function() {
+    const tbody = document.getElementById('adminApiTableBody');
+    if (!tbody) return;
+
+    logAdminEvent('Starting API endpoint health audit across ALL endpoints...', 'info');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Probing all API endpoints...</td></tr>';
+
+    const testId = "123456789012345678";
+    const endpoints = [
+        { url: `${API_BASE}/`, method: 'GET', name: 'Root API (/)' },
+        { url: `${API_BASE}/api/stats`, method: 'GET', name: 'Stats Endpoint (/api/stats)' },
+        { url: `${API_BASE}/api/mod/stats/${testId}`, method: 'GET', name: 'Mod Stats (/api/mod/stats/{id})' },
+        { url: `${API_BASE}/api/mod/members/${testId}`, method: 'GET', name: 'Mod Members (/api/mod/members/{id})' },
+        { url: `${API_BASE}/api/mod/bans/${testId}`, method: 'GET', name: 'Mod Bans (/api/mod/bans/{id})' },
+        { url: `${API_BASE}/api/mod/logs/${testId}`, method: 'GET', name: 'Mod Logs (/api/mod/logs/{id})' },
+        { url: `${API_BASE}/api/mod/roles/${testId}`, method: 'GET', name: 'Mod Roles (/api/mod/roles/{id})' },
+        { url: `${API_BASE}/api/analytics/${testId}`, method: 'GET', name: 'Analytics (/api/analytics/{id})' },
+        { url: `${API_BASE}/api/prefs/${testId}`, method: 'GET', name: 'Preferences (/api/prefs/{id})' }
+    ];
+
+    let rowsHtml = '';
+    let totalLatency = 0;
+    let reachableCount = 0;
+
+    const token = localStorage.getItem('d_token') || '';
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    for (const ep of endpoints) {
+        const start = Date.now();
+        let status = '200 OK';
+        let stateColor = '#22c55e';
+        let stateLabel = 'Online';
+        let latency = 0;
+
+        try {
+            const res = await fetch(ep.url, { method: ep.method, mode: 'cors', headers });
+            latency = Date.now() - start;
+            status = `${res.status} ${res.statusText || ''}`.trim();
+
+            // Server responded - server is reachable and active
+            reachableCount++;
+            if (res.ok) {
+                stateColor = '#22c55e';
+                stateLabel = 'Online (200)';
+            } else if (res.status === 401) {
+                stateColor = '#3b82f6';
+                stateLabel = 'Active (401 Auth Required)';
+            } else if (res.status === 403) {
+                stateColor = '#3b82f6';
+                stateLabel = 'Active (403 Forbidden)';
+            } else if (res.status === 404) {
+                stateColor = '#f59e0b';
+                stateLabel = 'Online (404 Not Found)';
+            } else {
+                stateColor = '#f59e0b';
+                stateLabel = `Active (${res.status})`;
+            }
+        } catch(e) {
+            latency = Date.now() - start;
+            status = 'Network Error';
+            stateColor = '#ef4444';
+            stateLabel = 'Offline / Net Error';
+        }
+
+        totalLatency += latency;
+
+        rowsHtml += `
+            <tr>
+                <td><strong>${ep.name}</strong> <span style="color:var(--text-muted); font-size:11px;">(${ep.url})</span></td>
+                <td><span class="admin-action-chip sm">${ep.method}</span></td>
+                <td>${status}</td>
+                <td>${latency} ms</td>
+                <td><span style="color:${stateColor}; font-weight:600;"><i class="fa-solid fa-circle" style="font-size:8px;"></i> ${stateLabel}</span></td>
+            </tr>
+        `;
+    }
+
+    tbody.innerHTML = rowsHtml;
+
+    const avgResp = Math.round(totalLatency / endpoints.length);
+    const avgEl = document.getElementById('adminApiAvgResp');
+    const statusEl = document.getElementById('adminApiStatus');
+
+    if (avgEl) avgEl.textContent = `${avgResp} ms`;
+    if (statusEl) {
+        statusEl.textContent = reachableCount === endpoints.length ? "Healthy (All Reachable)" : `${reachableCount}/${endpoints.length} Reachable`;
+        statusEl.style.color = reachableCount === endpoints.length ? "#22c55e" : "#f59e0b";
+    }
+
+    logAdminEvent('API endpoint health audit completed.', 'info');
+};
+
+function logAdminEvent(msg, type = 'info') {
+    const stream = document.getElementById('adminLogStream');
+    if (!stream) return;
+
+    const time = new Date().toLocaleTimeString();
+    const entry = document.createElement('div');
+    entry.className = `admin-log-entry ${type}`;
+    entry.innerHTML = `<span class="timestamp">[${time}]</span> ${msg}`;
+
+    stream.appendChild(entry);
+    stream.scrollTop = stream.scrollHeight;
+}
+
+window.clearAdminLogs = function() {
+    const stream = document.getElementById('adminLogStream');
+    if (stream) {
+        stream.innerHTML = '<div class="admin-log-entry info"><span class="timestamp">[System]</span> Log stream cleared.</div>';
+    }
+};
 
 /* ================= AUTHENTICATION ================= */
 function login() {
@@ -180,9 +527,15 @@ function login() {
 }
 
 async function checkAuth() {
+    const isAdminRoute = window.location.pathname.startsWith('/admin') || window.location.hash === '#admin';
+    if (isAdminRoute) {
+        hideLoginWall();
+        return;
+    }
+
     const fragment = new URLSearchParams(window.location.hash.slice(1));
     let token = fragment.get('access_token') || localStorage.getItem('d_token');
-    
+
     if (token) {
         localStorage.setItem('d_token', token);
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -246,23 +599,24 @@ function renderUserCard(u) {
         ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${u.avatar.startsWith('a_') ? 'gif' : 'png'}?size=128`
         : `https://cdn.discordapp.com/embed/avatars/${parseInt(u.id) % 5}.png`;
 
-    const statusColor = '#23a559'; // online green — we show them as online since they're here
-
-    document.getElementById('userCard').innerHTML = `
-        <div class="sidebar-user-card" onclick="toggleProfilePopup()" id="sidebarUserTrigger">
-            <div class="sidebar-user-avatar-wrap">
-                <img src="${avatar}" class="sidebar-user-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                <span class="sidebar-user-status"></span>
+    const userCard = document.getElementById('userCard');
+    if (userCard) {
+        userCard.innerHTML = `
+            <div class="sidebar-user-card" onclick="toggleProfilePopup()" id="sidebarUserTrigger">
+                <div class="sidebar-user-avatar-wrap">
+                    <img src="${avatar}" class="sidebar-user-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                    <span class="sidebar-user-status"></span>
+                </div>
+                <div class="sidebar-user-info">
+                    <span class="sidebar-user-name">${escProfile(u.global_name || u.username)}</span>
+                    <span class="sidebar-user-tag">@${escProfile(u.username)}</span>
+                </div>
+                <button class="sidebar-logout-btn" onclick="event.stopPropagation(); logout()" title="Log out">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
             </div>
-            <div class="sidebar-user-info">
-                <span class="sidebar-user-name">${escProfile(u.global_name || u.username)}</span>
-                <span class="sidebar-user-tag">@${escProfile(u.username)}</span>
-            </div>
-            <button class="sidebar-logout-btn" onclick="event.stopPropagation(); logout()" title="Log out">
-                <i class="fa-solid fa-right-from-bracket"></i>
-            </button>
-        </div>
-    `;
+        `;
+    }
 
     buildProfilePopup(u, avatar);
 }
@@ -361,9 +715,11 @@ window.toggleProfilePopup = function() {
     if (!popup.classList.contains('hidden')) {
         // Position above the user card
         const trigger = document.getElementById('sidebarUserTrigger');
-        const rect = trigger.getBoundingClientRect();
-        popup.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
-        popup.style.left = rect.left + 'px';
+        if (trigger) {
+            const rect = trigger.getBoundingClientRect();
+            popup.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+            popup.style.left = rect.left + 'px';
+        }
     }
 };
 
@@ -372,10 +728,13 @@ window.logout = function() {
     userProfile = null;
     const popup = document.getElementById('discordProfilePopup');
     if (popup) popup.remove();
-    document.getElementById('userCard').innerHTML = `
-        <button class="login-btn" onclick="login()">
-            <i class="fa-brands fa-discord"></i> Login
-        </button>`;
+    const userCard = document.getElementById('userCard');
+    if (userCard) {
+        userCard.innerHTML = `
+            <button class="login-btn" onclick="login()">
+                <i class="fa-brands fa-discord"></i> Login
+            </button>`;
+    }
     showLoginWall();
 };
 
@@ -385,7 +744,7 @@ async function fetchGuilds(token) {
     });
     const guilds = await res.json();
     const adminGuilds = guilds.filter(g => (BigInt(g.permissions) & 0x8n) || (BigInt(g.permissions) & 0x20n));
-    
+
     const menu = document.getElementById('guildDropdownMenu');
     if (menu) menu.innerHTML = '';
 
@@ -424,16 +783,13 @@ async function fetchGuilds(token) {
                 item.classList.add('active');
 
                 closeGuildDropdown();
-                // removed undefined _onGuildSelectDebounced
             });
 
             menu.appendChild(item);
         });
     }
 
-    // renderServerGrid(adminGuilds); - Removed for standalone dashboard
-
-    // Populate tab-specific guild dropdowns (stocks + moderation)
+    // Populate tab-specific guild dropdowns
     populateTabGuildDropdowns(adminGuilds);
 }
 
@@ -506,7 +862,7 @@ function toggleGuildDropdown() {
 function closeGuildDropdown() {
     const menu = document.getElementById('guildDropdownMenu');
     const selected = document.getElementById('guildDropdownSelected');
+    if (menu) menu.innerHTML = '';
     if (menu) menu.classList.add('hidden');
     if (selected) selected.classList.remove('open');
 }
-

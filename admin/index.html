@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arachnid Admin Telemetry Panel</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/qR4jqJdK/cropped_circle_image.png">
+    <link rel="stylesheet" href="/assets/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <canvas id="dashboard-stars-canvas"></canvas>
+
+    <div class="glass-container">
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-spider brand-logo-icon" style="color: var(--primary); font-size: 24px;"></i>
+                    <span>ARACHNID</span>
+                </div>
+                <button class="sidebar-close" id="sidebarClose" onclick="closeSidebar()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <ul class="nav-links">
+                <li class="active" data-tab="admin">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span>Admin Panel</span>
+                </li>
+                <li>
+                    <a href="/" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 15px; width: 100%;">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Main Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-card" id="userCard">
+                    <button class="login-btn" onclick="location.href='/'">
+                        <i class="fa-solid fa-arrow-left"></i> Main Site
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="hamburger" id="hamburgerBtn" onclick="openSidebar()">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1 id="activeTabTitle">Admin Telemetry Panel</h1>
+                </div>
+                <div class="system-status">
+                    <span class="status-indicator online"></span>
+                    <span id="connectionStatus">Connected</span>
+                </div>
+            </header>
+
+            <div class="content-scroll-area">
+                <section id="admin" class="tab-pane active">
+                    <div class="admin-layout">
+                        <!-- Locked password screen -->
+                        <div id="adminLockCard" class="admin-lock-card glass">
+                            <div class="admin-lock-header">
+                                <i class="fa-solid fa-lock admin-lock-icon"></i>
+                                <h2>Admin Telemetry Access</h2>
+                                <p>Enter administrative password to view system, WebSocket, and REST API statistics.</p>
+                            </div>
+                            <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="admin-lock-form">
+                                <div class="admin-input-group">
+                                    <i class="fa-solid fa-key"></i>
+                                    <input type="password" id="adminPasswordInput" placeholder="Password..." autocomplete="current-password" required>
+                                </div>
+                                <div id="adminAuthError" class="admin-auth-error hidden">
+                                    <i class="fa-solid fa-circle-exclamation"></i> Incorrect administrative password.
+                                </div>
+                                <button type="submit" id="adminUnlockBtn" class="admin-unlock-btn">
+                                    <i class="fa-solid fa-unlock"></i> Unlock Panel
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Unlocked Admin View -->
+                        <div id="adminDashboardView" class="admin-dashboard-view hidden">
+                            <div class="admin-top-actions">
+                                <div class="admin-badge"><i class="fa-solid fa-shield-cat"></i> System Telemetry</div>
+                                <div class="admin-btn-group">
+                                    <button class="admin-action-btn" onclick="refreshAdminStats()">
+                                        <i class="fa-solid fa-rotate-right"></i> Refresh Stats
+                                    </button>
+                                    <button class="admin-action-btn danger" onclick="lockAdminPanel()">
+                                        <i class="fa-solid fa-lock"></i> Lock Panel
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Overview Grid -->
+                            <div class="admin-metrics-grid">
+                                <div class="admin-card glass">
+                                    <div class="admin-card-title"><i class="fa-solid fa-plug" style="color:var(--primary)"></i> WebSocket Gateway</div>
+                                    <div class="admin-metric-val" id="adminWsStatus">Connected</div>
+                                    <div class="admin-metric-sub" id="adminWsUrl">ws://api.arach.lol:25739/ws</div>
+                                    <div class="admin-metric-footer">
+                                        <span>Latency / Ping</span>
+                                        <strong id="adminWsPing">— ms</strong>
+                                    </div>
+                                </div>
+
+                                <div class="admin-card glass">
+                                    <div class="admin-card-title"><i class="fa-solid fa-microchip" style="color:#06b6d4"></i> System Resources</div>
+                                    <div class="admin-resource-bar-wrap">
+                                        <div class="admin-resource-label"><span>CPU Utilization</span><strong id="adminCpuVal">12%</strong></div>
+                                        <div class="admin-progress-bg"><div class="admin-progress-bar" id="adminCpuBar" style="width: 12%"></div></div>
+                                    </div>
+                                    <div class="admin-resource-bar-wrap" style="margin-top: 10px;">
+                                        <div class="admin-resource-label"><span>Memory Usage</span><strong id="adminRamVal">42% (1.68 GB)</strong></div>
+                                        <div class="admin-progress-bg"><div class="admin-progress-bar cyan" id="adminRamBar" style="width: 42%"></div></div>
+                                    </div>
+                                </div>
+
+                                <div class="admin-card glass">
+                                    <div class="admin-card-title"><i class="fa-solid fa-robot" style="color:#a855f7"></i> Bot Fleet Telemetry</div>
+                                    <div class="admin-telemetry-list">
+                                        <div class="admin-telemetry-item"><span>Uptime:</span><strong id="adminBotUptime">99.98%</strong></div>
+                                        <div class="admin-telemetry-item"><span>Active Guilds:</span><strong id="adminGuildCount">1,482</strong></div>
+                                        <div class="admin-telemetry-item"><span>Cached Users:</span><strong id="adminUserCount">348,920</strong></div>
+                                    </div>
+                                </div>
+
+                                <div class="admin-card glass">
+                                    <div class="admin-card-title"><i class="fa-solid fa-network-wired" style="color:#3b82f6"></i> REST API Statistics</div>
+                                    <div class="admin-telemetry-list">
+                                        <div class="admin-telemetry-item"><span>API Health Status:</span><strong id="adminApiStatus" style="color:#22c55e">Healthy</strong></div>
+                                        <div class="admin-telemetry-item"><span>Average Response Time:</span><strong id="adminApiAvgResp">28 ms</strong></div>
+                                        <div class="admin-telemetry-item"><span>Total Endpoints Audited:</span><strong id="adminApiReqCount">12 Endpoints</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Guild & Member Telemetry Lookup -->
+                            <div class="admin-table-card glass" style="margin-top: 20px;">
+                                <div class="admin-card-title-row">
+                                    <div class="admin-card-title"><i class="fa-solid fa-magnifying-glass" style="color:#8b5cf6"></i> Guild & Member Stats Inspector</div>
+                                </div>
+                                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Query live stats, analytics, bans, logs, and roles for ANY Guild ID or Member ID across all API routes.</p>
+                                <form onsubmit="lookupGuildOrUserStats(event)" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <input type="text" id="adminLookupIdInput" placeholder="Enter Guild ID or Member ID (e.g. 123456789012345678)" style="flex: 1; min-width: 280px; padding: 10px 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; color: #fff; font-family: 'JetBrains Mono', monospace;" required>
+                                    <select id="adminLookupType" style="padding: 10px 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; color: #fff; cursor: pointer;">
+                                        <option value="guild">Guild Stats</option>
+                                        <option value="member">Member Stats</option>
+                                    </select>
+                                    <button type="submit" class="admin-action-btn"><i class="fa-solid fa-search"></i> Inspect ID</button>
+                                </form>
+                                <div id="adminLookupResults" class="admin-code-block" style="margin-top: 15px; display: none; max-height: 350px; overflow-y: auto;">
+                                    Result will appear here...
+                                </div>
+                            </div>
+
+                            <!-- Extended Detailed Stats Grid -->
+                            <div class="admin-metrics-grid" style="margin-top: 20px;">
+                                <div class="admin-card glass">
+                                    <div class="admin-card-title"><i class="fa-solid fa-wave-square" style="color:#eab308"></i> WS Traffic Counters</div>
+                                    <div class="admin-telemetry-list">
+                                        <div class="admin-telemetry-item"><span>Total WS Frames Received:</span><strong id="adminWsTotalFrames">0</strong></div>
+                                        <div class="admin-telemetry-item"><span>Stats Telemetry Events:</span><strong id="adminWsStatsFrames">0</strong></div>
+                                        <div class="admin-telemetry-item"><span>Inbound Frame Rate:</span><strong id="adminWsMsgRate">0 msg/s</strong></div>
+                                    </div>
+                                </div>
+
+                                <div class="admin-card glass admin-card-wide">
+                                    <div class="admin-card-title"><i class="fa-solid fa-code" style="color:#ec4899"></i> Latest Payload Inspector</div>
+                                    <pre id="adminPayloadInspect" class="admin-code-block">Waiting for incoming WebSocket payload...</pre>
+                                </div>
+                            </div>
+
+                            <!-- REST API Health Audit Table -->
+                            <div class="admin-table-card glass" style="margin-top: 20px;">
+                                <div class="admin-card-title-row">
+                                    <div class="admin-card-title"><i class="fa-solid fa-server" style="color:#10b981"></i> API Endpoints Status Audit (EVERY Endpoint)</div>
+                                    <button class="admin-action-btn sm" onclick="testApiEndpoints()"><i class="fa-solid fa-bolt"></i> Audit All Endpoints</button>
+                                </div>
+                                <div class="admin-table-wrap">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Endpoint Name</th>
+                                                <th>Method</th>
+                                                <th>HTTP Status</th>
+                                                <th>Latency</th>
+                                                <th>State</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="adminApiTableBody">
+                                            <tr><td colspan="5" style="text-align:center; color: var(--text-muted);">Click Audit All Endpoints to probe REST APIs</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Log Stream -->
+                            <div class="admin-table-card glass" style="margin-top: 20px;">
+                                <div class="admin-card-title-row">
+                                    <div class="admin-card-title"><i class="fa-solid fa-terminal" style="color:#f97316"></i> Real-time System & WS Event Log</div>
+                                    <button class="admin-action-btn sm" onclick="clearAdminLogs()"><i class="fa-solid fa-trash"></i> Clear Stream</button>
+                                </div>
+                                <div id="adminLogStream" class="admin-log-stream">
+                                    <div class="admin-log-entry info"><span class="timestamp">[System]</span> Admin logging initialized. Listening for WebSocket events...</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="/assets/js/dashboard.js"></script>
+    <script>
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+</html>
