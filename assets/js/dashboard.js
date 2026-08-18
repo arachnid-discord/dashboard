@@ -1,8 +1,8 @@
-// API is permanently at api.arach.lol via custom Windows Server port — no Gist needed.
+// API is permanently at api.arach.lol:25739 via custom Windows Server port — no Gist needed.
 const CLIENT_ID = "1524062850358841354";
-const API_BASE  = "http://arach.lol";
+const API_BASE  = "http://api.arach.lol:25739";
 const WS_URL    = "ws://api.arach.lol:25739/ws";
-console.log('[Config] API_BASE=http://arach.lol (static)');
+console.log('[Config] API_BASE=http://api.arach.lol:25739 (static)');
 async function loadConfig() {
     // Nothing to load — URL is permanent
 }
