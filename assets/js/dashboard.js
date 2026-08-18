@@ -331,18 +331,87 @@ function updateAdminPayloadInspect(payloadStr) {
     }
 }
 
+/* ================= GUILD & MEMBER STATS LOOKUP ================= */
+window.lookupGuildOrUserStats = async function(event) {
+    if (event) event.preventDefault();
+    const idInput = document.getElementById('adminLookupIdInput');
+    const typeSelect = document.getElementById('adminLookupType');
+    const resBox = document.getElementById('adminLookupResults');
+
+    if (!idInput || !typeSelect || !resBox) return;
+    const targetId = idInput.value.trim();
+    const lookupType = typeSelect.value;
+
+    if (!targetId) return;
+
+    resBox.style.display = 'block';
+    resBox.textContent = `Fetching telemetry for ${lookupType} ID: ${targetId}...`;
+
+    logAdminEvent(`Executing ${lookupType} lookup for ID ${targetId}...`, 'info');
+
+    try {
+        const results = {};
+        if (lookupType === 'guild') {
+            const routes = [
+                { name: 'mod_stats', path: `/api/mod/stats/${targetId}` },
+                { name: 'mod_members', path: `/api/mod/members/${targetId}` },
+                { name: 'mod_bans', path: `/api/mod/bans/${targetId}` },
+                { name: 'mod_logs', path: `/api/mod/logs/${targetId}` },
+                { name: 'mod_roles', path: `/api/mod/roles/${targetId}` },
+                { name: 'analytics', path: `/api/analytics/${targetId}` },
+                { name: 'prefs', path: `/api/prefs/${targetId}` }
+            ];
+
+            for (const r of routes) {
+                try {
+                    const res = await fetch(`${API_BASE}${r.path}`);
+                    results[r.name] = res.ok ? await res.json() : { status: res.status, statusText: res.statusText };
+                } catch(e) {
+                    results[r.name] = { error: e.message };
+                }
+            }
+        } else {
+            // Member lookup
+            const routes = [
+                { name: 'user_profile', path: `/api/user/${targetId}` },
+                { name: 'user_stats', path: `/api/stats/${targetId}` }
+            ];
+            for (const r of routes) {
+                try {
+                    const res = await fetch(`${API_BASE}${r.path}`);
+                    results[r.name] = res.ok ? await res.json() : { status: res.status, statusText: res.statusText };
+                } catch(e) {
+                    results[r.name] = { error: e.message };
+                }
+            }
+        }
+
+        resBox.textContent = JSON.stringify(results, null, 2);
+        logAdminEvent(`Lookup completed for ${lookupType} ${targetId}`, 'info');
+    } catch(e) {
+        resBox.textContent = `Error performing lookup: ${e.message}`;
+        logAdminEvent(`Lookup failed for ${targetId}: ${e.message}`, 'error');
+    }
+};
+
 window.testApiEndpoints = async function() {
     const tbody = document.getElementById('adminApiTableBody');
     if (!tbody) return;
 
-    logAdminEvent('Starting API endpoint health audit...', 'info');
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Probing endpoints...</td></tr>';
+    logAdminEvent('Starting API endpoint health audit across ALL endpoints...', 'info');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Probing all API endpoints...</td></tr>';
 
+    const testId = "123456789012345678";
     const endpoints = [
-        { url: `${API_BASE}/`, method: 'GET', name: 'Root API' },
-        { url: `${API_BASE}/health`, method: 'GET', name: 'Health Check' },
-        { url: `${API_BASE}/stats`, method: 'GET', name: 'Stats Endpoint' },
-        { url: `${API_BASE}/ping`, method: 'GET', name: 'Ping Latency' }
+        { url: `${API_BASE}/`, method: 'GET', name: 'Root API (/)' },
+        { url: `${API_BASE}/api/stats`, method: 'GET', name: 'Stats Endpoint (/api/stats)' },
+        { url: `${API_BASE}/api/mod/stats/${testId}`, method: 'GET', name: 'Mod Stats (/api/mod/stats/{id})' },
+        { url: `${API_BASE}/api/mod/members/${testId}`, method: 'GET', name: 'Mod Members (/api/mod/members/{id})' },
+        { url: `${API_BASE}/api/mod/bans/${testId}`, method: 'GET', name: 'Mod Bans (/api/mod/bans/{id})' },
+        { url: `${API_BASE}/api/mod/logs/${testId}`, method: 'GET', name: 'Mod Logs (/api/mod/logs/{id})' },
+        { url: `${API_BASE}/api/mod/roles/${testId}`, method: 'GET', name: 'Mod Roles (/api/mod/roles/{id})' },
+        { url: `${API_BASE}/api/analytics/${testId}`, method: 'GET', name: 'Analytics (/api/analytics/{id})' },
+        { url: `${API_BASE}/api/prefs/${testId}`, method: 'GET', name: 'Preferences (/api/prefs/{id})' }
     ];
 
     let rowsHtml = '';
@@ -757,6 +826,7 @@ function toggleGuildDropdown() {
 function closeGuildDropdown() {
     const menu = document.getElementById('guildDropdownMenu');
     const selected = document.getElementById('guildDropdownSelected');
+    if (menu) menu.innerHTML = '';
     if (menu) menu.classList.add('hidden');
     if (selected) selected.classList.remove('open');
 }

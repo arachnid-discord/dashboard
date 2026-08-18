@@ -138,8 +138,27 @@
                                     <div class="admin-telemetry-list">
                                         <div class="admin-telemetry-item"><span>API Health Status:</span><strong id="adminApiStatus" style="color:#22c55e">Healthy</strong></div>
                                         <div class="admin-telemetry-item"><span>Average Response Time:</span><strong id="adminApiAvgResp">28 ms</strong></div>
-                                        <div class="admin-telemetry-item"><span>Requests (Last Hour):</span><strong id="adminApiReqCount">14,290</strong></div>
+                                        <div class="admin-telemetry-item"><span>Total Endpoints Audited:</span><strong id="adminApiReqCount">12 Endpoints</strong></div>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Guild & Member Telemetry Lookup -->
+                            <div class="admin-table-card glass" style="margin-top: 20px;">
+                                <div class="admin-card-title-row">
+                                    <div class="admin-card-title"><i class="fa-solid fa-magnifying-glass" style="color:#8b5cf6"></i> Guild & Member Stats Inspector</div>
+                                </div>
+                                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Query live stats, analytics, bans, logs, and roles for ANY Guild ID or Member ID across all API routes.</p>
+                                <form onsubmit="lookupGuildOrUserStats(event)" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <input type="text" id="adminLookupIdInput" placeholder="Enter Guild ID or Member ID (e.g. 123456789012345678)" style="flex: 1; min-width: 280px; padding: 10px 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; color: #fff; font-family: 'JetBrains Mono', monospace;" required>
+                                    <select id="adminLookupType" style="padding: 10px 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; color: #fff; cursor: pointer;">
+                                        <option value="guild">Guild Stats</option>
+                                        <option value="member">Member Stats</option>
+                                    </select>
+                                    <button type="submit" class="admin-action-btn"><i class="fa-solid fa-search"></i> Inspect ID</button>
+                                </form>
+                                <div id="adminLookupResults" class="admin-code-block" style="margin-top: 15px; display: none; max-height: 350px; overflow-y: auto;">
+                                    Result will appear here...
                                 </div>
                             </div>
 
@@ -163,14 +182,14 @@
                             <!-- REST API Health Audit Table -->
                             <div class="admin-table-card glass" style="margin-top: 20px;">
                                 <div class="admin-card-title-row">
-                                    <div class="admin-card-title"><i class="fa-solid fa-server" style="color:#10b981"></i> API Endpoints Status Audit</div>
-                                    <button class="admin-action-btn sm" onclick="testApiEndpoints()"><i class="fa-solid fa-bolt"></i> Audit Endpoints</button>
+                                    <div class="admin-card-title"><i class="fa-solid fa-server" style="color:#10b981"></i> API Endpoints Status Audit (EVERY Endpoint)</div>
+                                    <button class="admin-action-btn sm" onclick="testApiEndpoints()"><i class="fa-solid fa-bolt"></i> Audit All Endpoints</button>
                                 </div>
                                 <div class="admin-table-wrap">
                                     <table class="admin-table">
                                         <thead>
                                             <tr>
-                                                <th>Endpoint</th>
+                                                <th>Endpoint Name</th>
                                                 <th>Method</th>
                                                 <th>HTTP Status</th>
                                                 <th>Latency</th>
@@ -178,7 +197,7 @@
                                             </tr>
                                         </thead>
                                         <tbody id="adminApiTableBody">
-                                            <tr><td colspan="5" style="text-align:center; color: var(--text-muted);">Click Audit Endpoints to probe REST APIs</td></tr>
+                                            <tr><td colspan="5" style="text-align:center; color: var(--text-muted);">Click Audit All Endpoints to probe REST APIs</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
