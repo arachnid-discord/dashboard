@@ -1,10 +1,11 @@
-// API is permanently at api.arach.lol:25739 via custom Windows Server port — no Gist needed.
+// API configuration - HTTP and WS only per user instruction
 const CLIENT_ID = "1524062850358841354";
-const API_BASE  = "http://api.arach.lol:25739";
-const WS_URL    = "ws://api.arach.lol:25739/ws";
-console.log('[Config] API_BASE=http://api.arach.lol:25739 (static)');
+const API_BASE = "http://api.arach.lol:25739";
+const WS_URL   = "ws://api.arach.lol:25739/ws";
+
+console.log('[Config] API_BASE=', API_BASE, 'WS_URL=', WS_URL);
 async function loadConfig() {
-    // Nothing to load — URL is permanent
+    // Permanent HTTP/WS config initialized
 }
 
 // State
@@ -349,6 +350,9 @@ window.lookupGuildOrUserStats = async function(event) {
 
     logAdminEvent(`Executing ${lookupType} lookup for ID ${targetId}...`, 'info');
 
+    const token = localStorage.getItem('d_token') || '';
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
     try {
         const results = {};
         if (lookupType === 'guild') {
@@ -364,8 +368,12 @@ window.lookupGuildOrUserStats = async function(event) {
 
             for (const r of routes) {
                 try {
-                    const res = await fetch(`${API_BASE}${r.path}`);
-                    results[r.name] = res.ok ? await res.json() : { status: res.status, statusText: res.statusText };
+                    const res = await fetch(`${API_BASE}${r.path}`, { headers });
+                    results[r.name] = {
+                        status: res.status,
+                        statusText: res.statusText,
+                        data: res.ok ? await res.json() : await res.text().catch(() => null)
+                    };
                 } catch(e) {
                     results[r.name] = { error: e.message };
                 }
@@ -380,8 +388,12 @@ window.lookupGuildOrUserStats = async function(event) {
             ];
             for (const r of routes) {
                 try {
-                    const res = await fetch(`${API_BASE}${r.path}`);
-                    results[r.name] = res.ok ? await res.json() : { status: res.status, statusText: res.statusText };
+                    const res = await fetch(`${API_BASE}${r.path}`, { headers });
+                    results[r.name] = {
+                        status: res.status,
+                        statusText: res.statusText,
+                        data: res.ok ? await res.json() : await res.text().catch(() => null)
+                    };
                 } catch(e) {
                     results[r.name] = { error: e.message };
                 }
@@ -418,24 +430,46 @@ window.testApiEndpoints = async function() {
 
     let rowsHtml = '';
     let totalLatency = 0;
-    let successCount = 0;
+    let reachableCount = 0;
+
+    const token = localStorage.getItem('d_token') || '';
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     for (const ep of endpoints) {
         const start = Date.now();
         let status = '200 OK';
         let stateColor = '#22c55e';
+        let stateLabel = 'Online';
         let latency = 0;
 
         try {
-            const res = await fetch(ep.url, { method: ep.method, mode: 'cors' });
+            const res = await fetch(ep.url, { method: ep.method, mode: 'cors', headers });
             latency = Date.now() - start;
-            status = `${res.status} ${res.statusText || 'OK'}`;
-            if (!res.ok) stateColor = '#f59e0b';
-            successCount++;
+            status = `${res.status} ${res.statusText || ''}`.trim();
+
+            // Server responded - server is reachable and active
+            reachableCount++;
+            if (res.ok) {
+                stateColor = '#22c55e';
+                stateLabel = 'Online (200)';
+            } else if (res.status === 401) {
+                stateColor = '#3b82f6';
+                stateLabel = 'Active (401 Auth Required)';
+            } else if (res.status === 403) {
+                stateColor = '#3b82f6';
+                stateLabel = 'Active (403 Forbidden)';
+            } else if (res.status === 404) {
+                stateColor = '#f59e0b';
+                stateLabel = 'Online (404 Not Found)';
+            } else {
+                stateColor = '#f59e0b';
+                stateLabel = `Active (${res.status})`;
+            }
         } catch(e) {
             latency = Date.now() - start;
-            status = 'ERR / Offline';
+            status = 'Network Error';
             stateColor = '#ef4444';
+            stateLabel = 'Offline / Net Error';
         }
 
         totalLatency += latency;
@@ -446,7 +480,7 @@ window.testApiEndpoints = async function() {
                 <td><span class="admin-action-chip sm">${ep.method}</span></td>
                 <td>${status}</td>
                 <td>${latency} ms</td>
-                <td><span style="color:${stateColor}; font-weight:600;"><i class="fa-solid fa-circle" style="font-size:8px;"></i> ${status.includes('ERR') ? 'Offline' : 'Online'}</span></td>
+                <td><span style="color:${stateColor}; font-weight:600;"><i class="fa-solid fa-circle" style="font-size:8px;"></i> ${stateLabel}</span></td>
             </tr>
         `;
     }
@@ -459,8 +493,8 @@ window.testApiEndpoints = async function() {
 
     if (avgEl) avgEl.textContent = `${avgResp} ms`;
     if (statusEl) {
-        statusEl.textContent = successCount === endpoints.length ? "Healthy" : "Degraded";
-        statusEl.style.color = successCount === endpoints.length ? "#22c55e" : "#f59e0b";
+        statusEl.textContent = reachableCount === endpoints.length ? "Healthy (All Reachable)" : `${reachableCount}/${endpoints.length} Reachable`;
+        statusEl.style.color = reachableCount === endpoints.length ? "#22c55e" : "#f59e0b";
     }
 
     logAdminEvent('API endpoint health audit completed.', 'info');
