@@ -25,14 +25,14 @@ export function AuthProvider({ children }) {
     setLoading(true);
     setError(null);
     try {
-      const [me, myGuilds, botGuilds] = await Promise.all([
+      const [me, myGuilds, botGuildIds] = await Promise.all([
         fetchDiscordUser(token),
         fetchDiscordGuilds(token),
-        getBotGuilds().catch(() => ({ guilds: [] })),
+        getBotGuilds().catch(() => []),
       ]);
       setUser(me);
 
-      const botGuildIds = new Set((botGuilds.guilds || []).map((g) => g.id));
+      const botGuildIdSet = new Set(botGuildIds || []);
       const manageable = myGuilds
         .filter(canManageGuild)
         .map((g) => ({
@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
           icon: g.icon
             ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png`
             : null,
-          botPresent: botGuildIds.has(g.id),
+          botPresent: botGuildIdSet.has(g.id),
         }));
       setGuilds(manageable);
     } catch (e) {
@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
     clearToken();
     setUser(null);
     setGuilds([]);
-    window.location.href = "/login";
+    window.location.href = "/dashboard/login";
   };
 
   return (

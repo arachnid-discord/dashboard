@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Play, Pause, SkipForward, Square, Shuffle } from "lucide-react";
 import { Card, CardHeader, Button, EmptyState, LoadingScreen } from "../components/ui";
-import { getMusicState, musicControl, getMusicHistory } from "../lib/api";
+import { getMusicState, musicControl, getMusicHistory, getPlaylists, playPlaylist } from "../lib/api";
 import { useGuild } from "../context/GuildContext";
 import { useToast } from "../context/ToastContext";
+import { useAuth } from "../context/AuthContext";
 
 function formatMs(ms) {
   const s = Math.floor((ms || 0) / 1000);
@@ -12,9 +13,26 @@ function formatMs(ms) {
 
 export default function Music() {
   const { guildId } = useGuild();
+  const { user } = useAuth();
   const { push } = useToast();
   const [state, setState] = useState(null);
   const [history, setHistory] = useState(null);
+  const [playlists, setPlaylists] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+    getPlaylists(user.id).then((r) => setPlaylists(r.playlists || r)).catch(() => setPlaylists([]));
+  }, [user]);
+
+  const playMyPlaylist = async (playlistId) => {
+    try {
+      await playPlaylist(user.id, { guild_id: guildId, playlist_id: playlistId });
+      push({ type: "success", message: "Playing playlist." });
+      setTimeout(refresh, 500);
+    } catch (e) {
+      push({ type: "error", message: e.message });
+    }
+  };
 
   const refresh = () => {
     getMusicState(guildId).then(setState).catch(() => {});
@@ -87,6 +105,25 @@ export default function Music() {
               </div>
             ))}
           </div>
+        </Card>
+      )}
+
+      {playlists && (
+        <Card>
+          <CardHeader title="Your playlists" />
+          {playlists.length === 0 ? <EmptyState>No saved playlists yet.</EmptyState> : (
+            <div className="divide-y divide-white/[0.05]">
+              {playlists.map((p) => (
+                <div key={p.id} className="py-2 flex items-center gap-3 text-[13px]">
+                  <span className="text-white/70 truncate flex-1">{p.name}</span>
+                  <span className="text-white/30">{p.track_count ?? p.tracks?.length ?? 0} tracks</span>
+                  <Button variant="secondary" onClick={() => playMyPlaylist(p.id)}>
+                    <Play className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
       )}
 

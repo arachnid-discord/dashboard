@@ -1,10 +1,7 @@
-const TOKEN_KEY = "arachnid_dashboard_token";
+const TOKEN_KEY = "rift_dashboard_token";
 
-export const CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID || "";
-// Points at the app root rather than a deep link like /callback: a hard
-// browser redirect (which is what Discord does) to a deep link 404s on any
-// host that isn't rewriting unknown paths to index.html (e.g. `vite preview`
-// or a static host without SPA fallback configured). "/" always resolves.
+// Same client ID the old dashboard used (assets/js/dashboard.js).
+export const CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID || "1329184069426348052";
 export const REDIRECT_URI =
   import.meta.env.VITE_DISCORD_REDIRECT_URI || `${window.location.origin}/`;
 
@@ -30,8 +27,7 @@ export function buildLoginUrl() {
   return `https://discord.com/oauth2/authorize?${params.toString()}`;
 }
 
-// Same permission set the bot's own `/utility invite` command generates —
-// keep these in sync if that ever changes.
+// Same permission set the bot's own `/utility invite` command generates.
 const BOT_INVITE_PERMISSIONS = "5076723787231222";
 
 export function buildInviteUrl(guildId) {
@@ -45,8 +41,6 @@ export function buildInviteUrl(guildId) {
   return `https://discord.com/oauth2/authorize?${params.toString()}`;
 }
 
-// Discord's implicit-grant flow returns the token in the URL fragment
-// (#access_token=...&token_type=...), not a query string.
 export function parseTokenFromHash(hash) {
   const params = new URLSearchParams(hash.replace(/^#/, ""));
   return params.get("access_token");

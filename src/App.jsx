@@ -14,6 +14,11 @@ import Moderation from "./pages/Moderation";
 import Music from "./pages/Music";
 import SettingsPage from "./pages/SettingsPage";
 import General from "./pages/General";
+import LastFm from "./pages/LastFm";
+import Stocks from "./pages/Stocks";
+import VoiceCall from "./pages/VoiceCall";
+import Verification from "./pages/Verification";
+import VerifyPublic from "./pages/VerifyPublic";
 
 function RequireAuth({ children }) {
   const { loading, user } = useAuth();
@@ -31,6 +36,7 @@ export default function App() {
           <Route path="/" element={<Callback />} />
           <Route path="/login" element={<Login />} />
           <Route path="/callback" element={<Callback />} />
+          <Route path="/verify" element={<VerifyPublic />} />
           <Route
             path="/guilds"
             element={
@@ -50,6 +56,10 @@ export default function App() {
             <Route index element={<Overview />} />
             <Route path="moderation" element={<Moderation />} />
             <Route path="music" element={<Music />} />
+            <Route path="lastfm" element={<LastFm />} />
+            <Route path="stocks" element={<Stocks />} />
+            <Route path="voice-call" element={<VoiceCall />} />
+            <Route path="verification-activity" element={<Verification />} />
             <Route path="settings/:section" element={<SettingsPage />} />
             <Route path="general" element={<General />} />
           </Route>

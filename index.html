@@ -1,13 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-base="/">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard — Arachnid</title>
-    <link rel="icon" type="image/png" href="/arachnid.png" />
+    <title>Rift Dashboard</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/qR4jqJdK/cropped_circle_image.png" />
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
   </head>
   <body class="bg-[#08090c]">
+    <script>
+      (function () {
+        var redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.pathname + location.search + location.hash) {
+          history.replaceState(null, "", redirect);
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

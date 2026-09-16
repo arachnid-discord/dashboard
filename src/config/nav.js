@@ -21,6 +21,10 @@ import {
   BadgeCheck,
   Mail,
   Settings,
+  Disc3,
+  LineChart,
+  PhoneCall,
+  ShieldQuestion,
 } from "lucide-react";
 
 export const NAV_GROUPS = [
@@ -30,6 +34,10 @@ export const NAV_GROUPS = [
       { to: "", label: "Overview", icon: LayoutDashboard },
       { to: "moderation", label: "Moderation", icon: ShieldAlert },
       { to: "music", label: "Music", icon: Music2 },
+      { to: "lastfm", label: "Last.fm", icon: Disc3 },
+      { to: "stocks", label: "Stocks", icon: LineChart },
+      { to: "voice-call", label: "Voice Call", icon: PhoneCall },
+      { to: "verification-activity", label: "Verification", icon: ShieldQuestion },
     ],
   },
   {

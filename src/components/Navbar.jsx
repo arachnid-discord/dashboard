@@ -40,7 +40,7 @@ export default function Navbar() {
         >
           <div className="hidden md:flex items-center gap-8">
             <Link to="/" className="flex text-blue-500 items-center group">
-              <img src="/arachnid.png" className="w-10 mr-1" alt="Arachnid" />
+              <img src="https://i.postimg.cc/qR4jqJdK/cropped_circle_image.png" className="w-10 mr-1" alt="Rift" />
             </Link>
             {LINKS.map((link) => (
               <a
@@ -54,7 +54,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
-            <img src="/arachnid.png" className="md:hidden w-10 h-10 rounded-lg" alt="Arachnid" />
+            <img src="https://i.postimg.cc/qR4jqJdK/cropped_circle_image.png" className="md:hidden w-10 h-10 rounded-lg" alt="Rift" />
 
             {authed && (
               <button
@@ -80,7 +80,7 @@ export default function Navbar() {
       {isOpen && (
         <div className="fixed inset-0 z-[100] md:hidden bg-[#0d0d0d]/95 backdrop-blur-xl flex flex-col">
           <div className="flex items-center justify-between px-6 h-[60px] border-b border-white/[0.06]">
-            <img src="/arachnid.png" className="w-10 h-10 rounded-lg" alt="Arachnid" />
+            <img src="https://i.postimg.cc/qR4jqJdK/cropped_circle_image.png" className="w-10 h-10 rounded-lg" alt="Rift" />
             <button
               onClick={() => setIsOpen(false)}
               className="p-2 rounded-lg text-white/50 hover:text-white transition-colors"
